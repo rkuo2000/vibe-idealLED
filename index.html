@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#101923">
+<meta name="description" content="A local Bluetooth controller for iDeal LED curtains."><link rel="manifest" href="idealLED.webmanifest"><link rel="icon" href="idealLED-192.png"><link rel="apple-touch-icon" href="idealLED-192.png">
+<title>idealLED · Curtain studio</title>
+<style>
+:root{color-scheme:dark;--bg:#101923;--card:#182430;--line:#2d3c48;--muted:#9aadb9;--mint:#b9f5d3;--light:#ffc58b}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#eff6f8;font:16px/1.5 system-ui,sans-serif}button,input,select{font:inherit}button,select,input[type=color]{cursor:pointer}button{border:1px solid var(--line);border-radius:12px;background:#223240;color:inherit;padding:11px 18px}button:hover:enabled{background:#304454}button:disabled{opacity:.4;cursor:not-allowed}button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--mint);outline-offset:4px}.primary{background:var(--mint);color:#142d23;border:0;font-weight:700}.primary:hover:enabled{background:#d7ffe6}.wrap{max-width:1180px;margin:auto;padding:30px}header{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px}.brand{font-size:25px;font-weight:750;letter-spacing:-1px}.brand span{color:var(--mint)}.eyebrow{font-size:12px;letter-spacing:2px;color:var(--mint);text-transform:uppercase}h1{font-size:clamp(30px,5vw,48px);letter-spacing:-1.8px;line-height:1.15;margin:12px 0}h2{font-size:19px;margin:0}.muted{color:var(--muted)}.intro{margin-bottom:28px}.layout{display:grid;grid-template-columns:1.15fr 1fr;gap:24px}.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:24px}.row{display:flex;align-items:center;justify-content:space-between;gap:12px}.stack{display:grid;gap:18px}.badge{font-size:12px;padding:6px 11px;border:1px solid var(--line);border-radius:30px;color:var(--muted)}.badge.connected{color:var(--mint);border-color:#4b8066}.preview{position:relative;height:420px;margin:22px 0;overflow:hidden;border-radius:16px;background:radial-gradient(ellipse at top,#2b3844,#0c131b 70%)}.preview:before{content:"";position:absolute;top:23px;left:8%;right:8%;height:2px;background:#64717c}.curtain{display:flex;justify-content:space-between;position:absolute;inset:24px 9% 22px}.strand{display:flex;flex-direction:column;justify-content:space-around;align-items:center;width:1px;background:#ffffff14}.bulb{width:5px;height:5px;border-radius:100%;background:var(--light);box-shadow:0 0 8px 2px var(--light),0 0 20px var(--light)}.preview.off .bulb{background:#44505a;box-shadow:none}.preview.effect .bulb{animation:glow 2.5s ease-in-out infinite alternate;animation-delay:var(--delay)}@keyframes glow{from{opacity:.25}to{opacity:1}}label{display:block;font-size:14px;color:#dce8ee}input[type=range]{width:100%;accent-color:var(--mint);margin:16px 0 4px}input[type=color]{height:48px;width:64px;padding:4px;background:#223240;border:1px solid var(--line);border-radius:10px}select{width:100%;margin-top:8px;padding:12px;border-radius:12px;background:#223240;border:1px solid var(--line);color:inherit}.swatches{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}.swatch{padding:0;width:33px;height:33px;border-radius:100%;background:var(--swatch);border:3px solid #ffffff26}.swatch:hover:enabled{background:var(--swatch);border-color:white}.controls{display:grid;gap:22px}.power{display:flex;gap:8px}.small{font-size:13px}.help{padding:16px;border-radius:12px;background:#111c26;color:var(--muted);font-size:13px}#message{margin:16px 0 0;min-height:24px;font-size:14px;color:var(--mint)}#message.error{color:#ffb7ab}details{margin-top:24px}summary{cursor:pointer;color:var(--muted)}details p{font-size:13px;color:var(--muted)}a{color:var(--mint)}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.6 monospace;max-height:180px;overflow:auto}footer{margin:26px 0;font-size:12px;color:var(--muted)}[hidden]{display:none!important}@media(max-width:760px){.wrap{padding:20px}.layout{grid-template-columns:1fr}.preview{height:330px}header{margin-bottom:25px}.card{padding:20px}}@media(prefers-reduced-motion:reduce){.preview.effect .bulb{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="brand">ideal<span>LED</span><span class="muted small"> / curtain studio</span></div><button id="install" hidden>Install app</button></header>
+<div class="intro"><div class="eyebrow">Make room for a little glow</div><h1>Your curtain. Your atmosphere.</h1><p class="muted">Connect nearby lights and set the mood, right from your browser.</p></div>
+<main class="layout">
+<section class="card"><div class="row"><h2>Curtain preview</h2><span class="badge">Local preview</span></div><div class="preview" id="preview" role="img" aria-label="Illustration of the selected curtain color"><div class="curtain" id="curtain"></div></div><div class="row small"><span id="sceneLabel">Solid · warm amber</span><span class="muted">Settings, not live device state</span></div></section>
+<div class="stack">
+<section class="card"><div class="row"><h2>Bluetooth connection</h2><span class="badge" id="status">Disconnected</span></div><p class="muted small" id="deviceName">Choose your IDL- or ISP- curtain.</p><div class="row"><button class="primary" id="connect">Connect curtain</button><button id="disconnect" disabled>Disconnect</button></div><p id="message" role="status" aria-live="polite"></p></section>
+<section class="card controls"><div class="row"><h2>Light controls</h2><div class="power"><button id="on" data-control disabled>On</button><button id="off" data-control disabled>Off</button></div></div>
+<div><div class="row"><label for="color">Solid color</label><input type="color" id="color" value="#ffc58b" aria-label="Solid color"></div><div class="swatches" id="swatches"></div></div>
+<div><div class="row"><label for="brightness">Brightness</label><output id="brightnessValue" for="brightness">60%</output></div><input id="brightness" type="range" min="0" max="100" value="60"></div>
+<div><label for="effect">Scene</label><select id="effect"><option value="solid">Solid color</option></select></div>
+<div id="speedPanel" hidden><div class="row"><label for="speed">Effect speed</label><output id="speedValue" for="speed">50%</output></div><input id="speed" type="range" min="1" max="100" value="50"><label><input id="reverse" type="checkbox"> Reverse direction</label></div>
+<button class="primary" id="apply" data-control disabled>Apply to curtain</button><div class="help">Adjust the preview, then apply. On and Off send immediately. Connecting does not change your lights.</div></section>
+</div>
+</main>
+<details><summary>Connection settings &amp; help</summary><div class="card" style="margin-top:16px"><label for="protocol">Device protocol</label><select id="protocol"><option value="TYPE2">Type 2 · R011-04 / R012-01 / TR2503R004-01</option><option value="TYPE1">Type 1 · R002-15 / R003-01 / R004-01 / R005-03</option></select><p>Type 2 is the repository default. Select the protocol matching your firmware; identical device names can use different protocols. Type 1 supports color and power here; effects are available for Type 2.</p><label><input id="allDevices" type="checkbox"> Show all Bluetooth devices in the chooser</label><p id="support">Use Chrome or Edge with Web Bluetooth on a supported computer or Android device. Serve this folder over HTTPS, or use localhost. Safari and Firefox do not provide the required API. Close other apps connected to the curtain before pairing.</p><p>Effects use the repository’s IDs 1–10; their appearance depends on the controller. Commands are encrypted locally. Color channels are limited to 5 bits, following the upstream controller. No account or cloud service is needed.</p><p>Protocol source: <a href="https://github.com/8none1/idealLED" target="_blank" rel="noopener">8none1/idealLED</a>. Only devices using that repository’s protocol are supported.</p><h2>Activity</h2><pre id="log" aria-label="Connection and command activity">Ready.</pre></div></details>
+<footer>idealLED · Direct Bluetooth control · Works offline after the first successful load</footer>
+</div>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const SERVICE = '0000fff0-0000-1000-8000-00805f9b34fb';
+const COMMAND = 'd44bc439-abfd-45a2-b575-925416129600';
+const DATA = 'd44bc439-abfd-45a2-b575-92541612960a';
+const NOTIFY = 'd44bc439-abfd-45a2-b575-925416129601';
+const KEY = new Uint8Array([0x34,0x52,0x2a,0x5b,0x7a,0x6e,0x49,0x2c,8,9,10,0x9d,0x8d,0x2a,0x23,0xf8]);
+const fromHex = s => Uint8Array.from(s.replaceAll(' ','').match(/../g), x => parseInt(x,16));
+let device = null, command = null, colorData = null, busy = false, previewOn = true, installPrompt;
+let keyPromise;
+// CBC with a zero IV has the same first block as ECB. Discard Web Crypto's padding block.
+async function encryptPacket(packet) {
+ if (packet.length !== 16) throw new Error('Command must contain exactly 16 bytes.');
+ keyPromise ||= crypto.subtle.importKey('raw',KEY,{name:'AES-CBC'},false,['encrypt']);
+ return new Uint8Array(await crypto.subtle.encrypt({name:'AES-CBC',iv:new Uint8Array(16)},await keyPromise,packet)).slice(0,16);
+}
+function log(text) { const lines = $('log').textContent.split('\n'); lines.push(new Date().toLocaleTimeString()+' · '+text); $('log').textContent = lines.slice(-35).join('\n'); }
+function message(text,error=false) { $('message').textContent=text; $('message').classList.toggle('error',error); }
+function ready() { return !!(device?.gatt.connected && command); }
+function updateControls() {
+ document.querySelectorAll('[data-control]').forEach(el=>el.disabled=!ready()||busy);
+ $('connect').disabled=busy||ready()||!navigator.bluetooth||!window.isSecureContext;
+ $('disconnect').disabled=busy||!ready(); $('protocol').disabled=busy; $('allDevices').disabled=busy;
+ $('status').textContent=ready()?'Connected':'Disconnected'; $('status').classList.toggle('connected',ready());
+}
+async function write(characteristic,bytes) {
+ if (!ready()) throw new Error('Curtain disconnected. Connect again to send settings.');
+ if (characteristic.properties.writeWithoutResponse) await characteristic.writeValueWithoutResponse(bytes);
+ else if (characteristic.properties.write) await characteristic.writeValueWithResponse(bytes);
+ else throw new Error('This Bluetooth characteristic does not accept writes.');
+}
+async function send(packet) { await write(command,await encryptPacket(packet)); }
+async function operation(task) {
+ if(busy) return; busy=true; updateControls();
+ try { await task(); } catch(error) { message(error.message||String(error),true); log('Error: '+error.message); }
+ finally { busy=false; updateControls(); }
+}
+function disconnected() { command=null; colorData=null; updateControls(); message('Disconnected. Your curtain keeps its last setting.'); log('Bluetooth disconnected.'); }
+async function connect() {
+ await operation(async()=>{
+  message('Choose your curtain in the Bluetooth chooser…');
+  const options={optionalServices:[SERVICE]};
+  if($('allDevices').checked) options.acceptAllDevices=true;
+  else options.filters=[{namePrefix:'IDL-'},{namePrefix:'ISP-'}];
+  const selected=await navigator.bluetooth.requestDevice(options);
+  if(device) device.removeEventListener('gattserverdisconnected',disconnected);
+  device=selected; device.addEventListener('gattserverdisconnected',disconnected);
+  try {
+   message('Connecting…'); const server=await device.gatt.connect();
+   const service=await server.getPrimaryService(SERVICE);
+   command=await service.getCharacteristic(COMMAND);
+   const notify=await service.getCharacteristic(NOTIFY);
+   notify.addEventListener('characteristicvaluechanged',event=>{
+    const value=event.target.value; log('Device notification: '+Array.from(new Uint8Array(value.buffer,value.byteOffset,value.byteLength),x=>x.toString(16).padStart(2,'0')).join(''));
+   });
+   await notify.startNotifications();
+   try { colorData=await service.getCharacteristic(DATA); } catch { colorData=null; log('Palette characteristic unavailable; solid color and power only.'); }
+   $('deviceName').textContent=device.name||'Unnamed curtain';
+   message('Connected. Choose settings and apply when ready.'); log('Connected to '+(device.name||device.id));
+  } catch(error) { if(device.gatt.connected) device.gatt.disconnect(); command=null; colorData=null; throw error; }
+ });
+}
+function powerPacket(on,type) {
+ return fromHex(type==='TYPE1'?(on?'06 4C 45 44 4F 4E 00 00 00 00 00 00 00 00 00 00':'06 4C 45 44 4F 46 46 00 00 00 00 00 00 00 00 00'):(on?'05 54 55 52 4E 01 00 00 00 00 00 00 00 00 00 00':'05 54 55 52 4E 00 00 00 00 00 00 00 00 00 00 00'));
+}
+function colorPacket(hex,brightness,type) {
+ const rgb=hex.match(/[a-f\d]{2}/gi).map(x=>Math.floor(parseInt(x,16)*brightness/100)>>3);
+ const packet=fromHex(type==='TYPE1'?'07 43 4F 4C 4F 00 FF 00 00 00 00 00 00 00 00 00':'0F 53 47 4C 53 00 00 64 50 1F 00 00 1F 00 00 32');
+ if(type==='TYPE1') { packet[6]=rgb[0]; packet[5]=rgb[1]; packet[7]=rgb[2]; }
+ else { packet.set(rgb,9); packet.set(rgb,12); }
+ return packet;
+}
+function effectPacket(effect,speed,brightness,reverse) {
+ if(!Number.isInteger(effect)||effect<1||effect>10) throw new Error('Unsupported effect.');
+ const packet=fromHex('0A 4D 55 4C 54 08 00 64 50 07 32 00 00 00 00 00');
+ packet[5]=effect; packet[6]=reverse?1:0; packet[8]=Math.max(1,Math.min(100,speed)); packet[10]=Math.max(0,Math.min(100,brightness)); return packet;
+}
+function palette(brightness) {
+ const packet=new Uint8Array(23); packet[0]=21;
+ for(let i=0;i<7;i++) { const h=i*51/60; const x=1-Math.abs(h%2-1); const rgb=h<1?[1,x,0]:h<2?[x,1,0]:h<3?[0,1,x]:h<4?[0,x,1]:h<5?[x,0,1]:[1,0,x]; packet.set(rgb.map(v=>Math.floor(v*255*brightness/100)),2+i*3); }
+ return packet;
+}
+async function setPower(on) { await operation(async()=>{ await send(powerPacket(on,$('protocol').value)); previewOn=on; render(); message('Power '+(on?'on':'off')+' command sent.'); log('Power '+(on?'on':'off')+' sent.'); }); }
+async function apply() {
+ const settings={type:$('protocol').value,color:$('color').value,brightness:Number($('brightness').value),effect:$('effect').value,speed:Number($('speed').value),reverse:$('reverse').checked};
+ await operation(async()=>{
+  if(settings.effect==='solid') await send(colorPacket(settings.color,settings.brightness,settings.type));
+  else {
+   if(settings.type!=='TYPE2') throw new Error('Select solid color for Type 1.');
+   if(!colorData) throw new Error('This device has no effect palette characteristic. Select solid color.');
+   if(!colorData.properties.write&&!colorData.properties.writeWithoutResponse) throw new Error('Effect palette is not writable. Select solid color.');
+   await send(effectPacket(Number(settings.effect),settings.speed,settings.brightness,settings.reverse));
+   // The controller expects a single 23-byte palette write, as in the upstream implementation.
+   await write(colorData,palette(settings.brightness));
+  }
+  message('Settings sent. Use On if the curtain is switched off.'); log('Sent '+(settings.effect==='solid'?settings.color:'effect '+settings.effect)+' at '+settings.brightness+'%.');
+ });
+}
+function render() {
+ const effect=$('effect').value!=='solid';
+ $('brightnessValue').value=$('brightness').value+'%'; $('speedValue').value=$('speed').value+'%';
+ $('speedPanel').hidden=!effect||$('protocol').value==='TYPE1';
+ $('preview').classList.toggle('effect',effect); $('preview').classList.toggle('off',!previewOn);
+ $('preview').style.setProperty('--light',$('color').value);
+ $('curtain').style.opacity=previewOn?Math.max(.04,Number($('brightness').value)/100):1;
+ document.querySelectorAll('.bulb').forEach((bulb,i)=>bulb.style.background=effect&&previewOn?`hsl(${(i%12)*30} 85% 70%)`:'');
+ $('sceneLabel').textContent=(effect?'Effect '+$('effect').value:'Solid · '+$('color').value.toUpperCase())+' · '+$('brightness').value+'%';
+}
+for(let col=0;col<12;col++){const strand=document.createElement('div');strand.className='strand';for(let row=0;row<12;row++){const bulb=document.createElement('i');bulb.className='bulb';bulb.style.setProperty('--delay',`-${(col*7+row)/13}s`);strand.append(bulb);} $('curtain').append(strand);}
+for(let i=1;i<=10;i++){const option=document.createElement('option');option.value=i;option.textContent='Effect '+String(i).padStart(2,'0');$('effect').append(option);}
+for(const [name,color] of [['Warm amber','#ffc58b'],['Rose','#ff8fbc'],['Lavender','#b49aff'],['Sky','#83d8ff'],['Mint','#a8f5cd'],['White','#ffffff']]){const button=document.createElement('button');button.className='swatch';button.style.setProperty('--swatch',color);button.title=name;button.setAttribute('aria-label',name);button.onclick=()=>{$('color').value=color;$('effect').value='solid';render();};$('swatches').append(button);}
+$('connect').onclick=connect; $('disconnect').onclick=()=>device?.gatt.disconnect(); $('on').onclick=()=>setPower(true); $('off').onclick=()=>setPower(false); $('apply').onclick=apply;
+for(const id of ['color','brightness','effect','speed','reverse']) $(id).addEventListener('input',render);
+$('protocol').onchange=()=>{if($('protocol').value==='TYPE1') $('effect').value='solid';Array.from($('effect').options).forEach(option=>option.disabled=option.value!=='solid'&&$('protocol').value==='TYPE1');render();};
+window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;$('install').hidden=false;});
+$('install').onclick=async()=>{if(installPrompt){await installPrompt.prompt();installPrompt=null;$('install').hidden=true;}};
+window.addEventListener('appinstalled',()=>{$('install').hidden=true;log('App installed.');});
+if(!window.isSecureContext) message('Open this page over HTTPS or localhost to enable Bluetooth.',true);
+else if(!navigator.bluetooth) message('Web Bluetooth is unavailable. Open in a supported Chrome or Edge browser.',true);
+if('serviceWorker' in navigator&&window.isSecureContext&&location.protocol!=='file:') navigator.serviceWorker.register('./idealLED-sw.js').catch(error=>log('Offline setup failed: '+error.message));
+render();updateControls();
+</script>
+</body>
+</html>
